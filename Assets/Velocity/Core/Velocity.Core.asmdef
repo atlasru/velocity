@@ -1,0 +1,7 @@
+{
+  "name": "Velocity.Core",
+  "rootNamespace": "Velocity.Core",
+  "references": [],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

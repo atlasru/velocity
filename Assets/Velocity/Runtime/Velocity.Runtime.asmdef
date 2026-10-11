@@ -1,0 +1,6 @@
+{
+  "name": "Velocity.Runtime",
+  "rootNamespace": "Velocity.Runtime",
+  "references": ["Velocity.Core", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime", "UnityEngine.UI"],
+  "autoReferenced": true
+}

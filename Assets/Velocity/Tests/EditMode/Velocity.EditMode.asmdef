@@ -1,0 +1,7 @@
+{
+  "name": "Velocity.EditMode",
+  "references": ["Velocity.Core"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}
