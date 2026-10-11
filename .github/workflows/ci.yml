@@ -23,7 +23,7 @@ jobs:
       - name: Validate workflow and packaging scripts
         run: |
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck="" .github/workflows/ci.yml
-          python3 -m py_compile Tools/build_metadata.py Tools/package_build.py Tools/publish_release.py
+          python3 -m py_compile Tools/build_metadata.py Tools/package_build.py Tools/publish_release.py Tools/redact_logs.py
       - name: Check Unity C# syntax
         run: dotnet run --project Tools/SyntaxCheck -c Release
       - name: Compile simulation for Unity's .NET Standard API surface
@@ -73,6 +73,18 @@ jobs:
           testMode: all
           coverageOptions: 'assemblyFilters:+Velocity.*'
           artifactsPath: artifacts/unity-tests
+      - name: Redact activation and signing secrets from artifact logs
+        if: always()
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: python3 Tools/redact_logs.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -144,13 +156,25 @@ jobs:
           path: dist
           if-no-files-found: error
           retention-days: 30
+      - name: Redact activation and signing secrets from artifact logs
+        if: always()
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: python3 Tools/redact_logs.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: Unity-logs-${{ matrix.target }}
           path: |
             build/**/*.log
-            Logs/**
+            Logs/**/*.log
           if-no-files-found: warn
   release:
     name: Publish verified tagged binaries

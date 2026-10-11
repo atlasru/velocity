@@ -9,7 +9,7 @@ Local runs passed 43/43, including course completion from spawn through ordinary
 - [Phase one actual run](https://github.com/atlasru/velocity/actions/runs/38169995113)
 - [Phase two actual run](https://github.com/atlasru/velocity/actions/runs/38172540632)
 
-The [expanded actual CI run](https://github.com/atlasru/velocity/actions/runs/38175323998) passed **43/43**, workflow/script validation, 22-file C# syntax checking and .NET Standard compilation with zero warnings/errors. It uploaded source and test-results artifacts. Both real exports failed on missing Unity activation. Its v4.4.0 Editor test wrapper failed on a CLI argument; the workflow now pins the classic v4.3.2 runner and is rerun separately. Inspect the latest [Velocity CI](https://github.com/atlasru/velocity/actions) result for that wrapper correction; no successful Unity execution is claimed.
+The [expanded actual CI run](https://github.com/atlasru/velocity/actions/runs/38175323998) passed **43/43**, workflow/script validation, 22-file C# syntax checking and .NET Standard compilation with zero warnings/errors. It uploaded source and test-results artifacts. Both real exports failed on missing Unity activation. The v4.4.0 Editor wrapper exposed a CLI argument failure, so the workflow pins classic v4.3.2. The [verified rerun](https://github.com/atlasru/velocity/actions/runs/38175737245) passed 43/43 again; all three Unity jobs now stop on the exact missing-license error. No successful Unity execution is claimed.
 
 | Area | Automated coverage |
 | --- | --- |

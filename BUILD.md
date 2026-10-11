@@ -32,7 +32,7 @@ After activation is configured, rerun failed jobs or manually dispatch **Velocit
 3. GameCI attempts EditMode and PlayMode tests with the pinned Editor. The classic v4.3.2 Docker runner is pinned to avoid the observed v4.4.0 CLI argument failure. No code-coverage package is added to the committed project.
 4. GameCI attempts both real exports sequentially. Export attempts still run if activation blocks Editor testing and core checks passed.
 5. Packaging requires an actual x64 PE plus Unity runtime/data/core assemblies, or an ARM64-only IL2CPP APK with correct ELF architecture and a signature verified by SDK apksigner.
-6. Windows is zipped with the complete output directory. Metadata records commit/editor/target/version/SHA-256. Development artifacts last 30 days; source lasts 90.
+6. Windows is zipped with the complete output directory. Metadata records commit/editor/target/version/SHA-256. Activation/signing values are scrubbed from file logs before artifact upload. Development artifacts last 30 days; source lasts 90.
 7. A tag publishes only after core tests, Unity tests and both exports pass. It creates a draft, uploads Windows ZIP, Android APK, source, metadata and checksums, then publishes.
 
 Missing activation fails visibly. No fake executable/APK is created. Export architecture/signature checks do not verify launch/install on hardware.
