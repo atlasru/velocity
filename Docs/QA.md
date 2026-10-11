@@ -9,7 +9,7 @@ Local runs passed 43/43, including course completion from spawn through ordinary
 - [Phase one actual run](https://github.com/atlasru/velocity/actions/runs/38169995113)
 - [Phase two actual run](https://github.com/atlasru/velocity/actions/runs/38172540632)
 
-The final expanded suite and packaging workflow are checked by the next branch push. Inspect its actual result under [Velocity CI](https://github.com/atlasru/velocity/actions). Do not infer a successful check/export merely from a source commit.
+The [expanded actual CI run](https://github.com/atlasru/velocity/actions/runs/38175323998) passed **43/43**, workflow/script validation, 22-file C# syntax checking and .NET Standard compilation with zero warnings/errors. It uploaded source and test-results artifacts. Both real exports failed on missing Unity activation. Its v4.4.0 Editor test wrapper failed on a CLI argument; the workflow now pins the classic v4.3.2 runner and is rerun separately. Inspect the latest [Velocity CI](https://github.com/atlasru/velocity/actions) result for that wrapper correction; no successful Unity execution is claimed.
 
 | Area | Automated coverage |
 | --- | --- |

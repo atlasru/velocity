@@ -62,7 +62,7 @@ jobs:
           key: Unity-6000.3.26f1-tests-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Unity-6000.3.26f1-tests-
       - name: Run Editor tests with GameCI
-        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4
+        uses: game-ci/unity-test-runner@fa6ced25861c16ef56187828c43f76d00df43a23 # v4.3.2, classic Docker runner
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -71,7 +71,7 @@ jobs:
         with:
           unityVersion: 6000.3.26f1
           testMode: all
-          coverageEnabled: false
+          coverageOptions: 'assemblyFilters:+Velocity.*'
           artifactsPath: artifacts/unity-tests
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()

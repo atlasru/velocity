@@ -29,7 +29,7 @@ After activation is configured, rerun failed jobs or manually dispatch **Velocit
 
 1. Validate the workflow and packaging scripts, check Unity C# syntax, compile the shared core against .NET Standard 2.1, run real movement/course/UDP tests.
 2. Upload an exact source ZIP as Velocity-source even if another check fails.
-3. GameCI attempts EditMode and PlayMode tests with the pinned Editor. Coverage instrumentation is disabled.
+3. GameCI attempts EditMode and PlayMode tests with the pinned Editor. The classic v4.3.2 Docker runner is pinned to avoid the observed v4.4.0 CLI argument failure. No code-coverage package is added to the committed project.
 4. GameCI attempts both real exports sequentially. Export attempts still run if activation blocks Editor testing and core checks passed.
 5. Packaging requires an actual x64 PE plus Unity runtime/data/core assemblies, or an ARM64-only IL2CPP APK with correct ELF architecture and a signature verified by SDK apksigner.
 6. Windows is zipped with the complete output directory. Metadata records commit/editor/target/version/SHA-256. Development artifacts last 30 days; source lasts 90.
