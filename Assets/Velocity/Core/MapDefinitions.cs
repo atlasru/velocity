@@ -34,7 +34,7 @@ namespace Velocity.Core
         private static void Surf(MapDefinition m)
         {
             m.Hint="Launch with W. On the first ramp hold A, release W, turn gently. Space: jump. T: checkpoint.";
-            m.Spawn=new Vec3(-5.5f,32.502f,-14); m.KillHeight=-48;
+            m.Spawn=new Vec3(0,32.502f,-14); m.KillHeight=-48;
             m.Box(new Vec3(-4,32,-12),new Vec3(16,1,20));
             m.Ramp(new Vec3(0,22,20),14,44,55);
             m.Box(new Vec3(0,10,51),new Vec3(28,1,18),2);
@@ -43,15 +43,33 @@ namespace Velocity.Core
             m.Ramp(new Vec3(0,-22,151),16,50,52);
             m.Box(new Vec3(0,-34,189),new Vec3(32,1,28),3);
             m.Zone(ZoneKind.Start,new Vec3(-4,34,-16),new Vec3(16,5,9));
-            m.Zone(ZoneKind.Checkpoint,new Vec3(0,12,51),new Vec3(28,5,18),1,new Vec3(5.5f,10.502f,55));
-            m.Zone(ZoneKind.Checkpoint,new Vec3(0,-10,117),new Vec3(28,5,18),2,new Vec3(-6.5f,-11.498f,121));
+            m.Zone(ZoneKind.Checkpoint,new Vec3(0,12,51),new Vec3(28,5,18),1,new Vec3(0,10.502f,55));
+            m.Zone(ZoneKind.Checkpoint,new Vec3(0,-10,117),new Vec3(28,5,18),2,new Vec3(0,-11.498f,121));
             m.Zone(ZoneKind.Finish,new Vec3(0,-32,190),new Vec3(32,5,18));
-            // Three wide continuous ramps. Each landing is a full-width checkpoint;
-            // future curved modules must pass the same collision regression suite.
+            // An optional curved bank rejoins checkpoint 2. Adjacent panels share exact
+            // rail vertices; each planar triangle is also its actual collision brush.
+            Vec3[] path={new Vec3(11,4,61),new Vec3(13,3,71),new Vec3(17,1,82),new Vec3(20,-2,93),new Vec3(15,-6,106),new Vec3(10,-9,114)};
+            CurvedBank(m,path,12,50);
+        }
+        private static void CurvedBank(MapDefinition m,Vec3[] centers,float width,float angle)
+        {
+            var left=new Vec3[centers.Length];var right=new Vec3[centers.Length];
+            float half=width*.5f,rise=half*(float)System.Math.Tan(angle*MathEx.DegToRad);
+            for(int i=0;i<centers.Length;i++)
+            {
+                Vec3 tangent=(centers[System.Math.Min(i+1,centers.Length-1)]-centers[System.Math.Max(i-1,0)]).Horizontal.Normalized;
+                Vec3 across=Vec3.Cross(Vec3.Up,tangent).Normalized;
+                left[i]=centers[i]-across*half+Vec3.Up*rise;right[i]=centers[i]+across*half-Vec3.Up*rise;
+            }
+            for(int i=0;i<centers.Length-1;i++)
+            {
+                m.World.Brushes.Add(BrushFactory.TrianglePrism(left[i],right[i+1],right[i]));
+                m.World.Brushes.Add(BrushFactory.TrianglePrism(left[i],left[i+1],right[i+1]));
+            }
         }
         private static void Bhop(MapDefinition m)
         {
-            m.Hint="Hold Space for auto-bhop. Strafe and turn together. R: restart. T: checkpoint. Side route is easier.";
+            m.Hint="Run first, then hold Space for auto-bhop. Strafe and turn together. R: restart. T: checkpoint. Side route is easier.";
             m.Spawn=new Vec3(0,1.002f,-5); m.KillHeight=-8;
             m.Box(new Vec3(0,.5f,-4),new Vec3(14,1,16));
             for(int i=0;i<24;i++)

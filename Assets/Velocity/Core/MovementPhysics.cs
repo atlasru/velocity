@@ -26,6 +26,13 @@ namespace Velocity.Core
         public const int TickRate=120;
         public const float TickDelta=1f/TickRate;
         public static MovementConfig Preset(MapMode mode) => new MovementConfig { sv_airaccelerate=mode==MapMode.Bhop?100:150 };
+        public bool Valid => Range(sv_gravity,0,80)&&Range(sv_accelerate,0,100)&&Range(sv_airaccelerate,0,1000)&&Range(sv_friction,0,20)&&Range(sv_maxspeed,1,40)&&Range(sv_stopspeed,0,20)&&Range(sv_jump_impulse,1,20)&&Range(sv_air_max_wishspeed,0,10)&&Range(SpeedLimit,0,128);
+        private static bool Range(float value,float min,float max) => MathEx.Finite(value)&&value>=min&&value<=max;
+        public void CopyFrom(MovementConfig c)
+        {
+            sv_gravity=c.sv_gravity;sv_accelerate=c.sv_accelerate;sv_airaccelerate=c.sv_airaccelerate;sv_friction=c.sv_friction;sv_maxspeed=c.sv_maxspeed;sv_stopspeed=c.sv_stopspeed;sv_jump_impulse=c.sv_jump_impulse;sv_air_max_wishspeed=c.sv_air_max_wishspeed;sv_autobunnyhopping=c.sv_autobunnyhopping;SpeedLimit=c.SpeedLimit;
+        }
+        public bool SameRules(MovementConfig c) => sv_gravity==c.sv_gravity&&sv_accelerate==c.sv_accelerate&&sv_airaccelerate==c.sv_airaccelerate&&sv_friction==c.sv_friction&&sv_maxspeed==c.sv_maxspeed&&sv_stopspeed==c.sv_stopspeed&&sv_jump_impulse==c.sv_jump_impulse&&sv_air_max_wishspeed==c.sv_air_max_wishspeed&&sv_autobunnyhopping==c.sv_autobunnyhopping&&SpeedLimit==c.SpeedLimit;
     }
 
     [Serializable]

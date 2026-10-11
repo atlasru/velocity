@@ -1,0 +1,6 @@
+{
+  "name": "Velocity.PlayMode",
+  "references": ["Velocity.Core", "Velocity.Runtime", "Unity.RenderPipelines.Universal.Runtime"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

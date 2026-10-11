@@ -42,7 +42,8 @@ namespace Velocity.Core
         public int Material;
         public ConvexBrush(CollisionPlane[] planes, Vec3[] vertices, int[] triangles, int material)
         {
-            Planes = planes; Vertices = vertices; Triangles = triangles; Material = material;
+            Vertices = vertices; Triangles = triangles; Material = material;
+            Planes = AddHullBevels(planes,vertices,triangles);
             Minimum = new Vec3(float.MaxValue, float.MaxValue, float.MaxValue);
             Maximum = -Minimum;
             foreach (Vec3 v in vertices)
@@ -50,6 +51,38 @@ namespace Velocity.Core
                 Minimum = new Vec3(Math.Min(Minimum.X, v.X), Math.Min(Minimum.Y, v.Y), Math.Min(Minimum.Z, v.Z));
                 Maximum = new Vec3(Math.Max(Maximum.X, v.X), Math.Max(Maximum.Y, v.Y), Math.Max(Maximum.Z, v.Z));
             }
+        }
+        private static CollisionPlane[] AddHullBevels(CollisionPlane[] originals,Vec3[] vertices,int[] triangles)
+        {
+            var result=new List<CollisionPlane>(originals);
+            void Add(Vec3 direction)
+            {
+                if(direction.LengthSquared<1e-8f) return;Vec3 n=direction.Normalized;
+                foreach(CollisionPlane p in result) if(Vec3.Dot(p.Normal,n)>.99999f) return;
+                float distance=float.NegativeInfinity;foreach(Vec3 v in vertices)distance=Math.Max(distance,Vec3.Dot(n,v));
+                result.Add(new CollisionPlane{Normal=n,Distance=distance});
+            }
+            Vec3[] axes={new Vec3(1,0,0),Vec3.Up,new Vec3(0,0,1)};
+            foreach(Vec3 axis in axes){Add(axis);Add(-axis);}
+            var edges=new Dictionary<long,Vec3>();
+            var bevel=new HashSet<long>();
+            for(int t=0;t<triangles.Length;t+=3)
+            {
+                int a=triangles[t],b=triangles[t+1],c=triangles[t+2];Vec3 normal=Vec3.Cross(vertices[b]-vertices[a],vertices[c]-vertices[a]).Normalized;
+                int[] ids={a,b,c};
+                for(int k=0;k<3;k++)
+                {
+                    int first=Math.Min(ids[k],ids[(k+1)%3]),second=Math.Max(ids[k],ids[(k+1)%3]);long key=((long)first<<32)|(uint)second;
+                    if(edges.TryGetValue(key,out Vec3 other)){if(Vec3.Dot(other,normal)<.99999f)bevel.Add(key);}else edges.Add(key,normal);
+                }
+            }
+            var orderedEdges=new List<long>(bevel);orderedEdges.Sort();
+            foreach(long key in orderedEdges)
+            {
+                int a=(int)(key>>32),b=(int)(key&uint.MaxValue);Vec3 edge=vertices[b]-vertices[a];
+                foreach(Vec3 axis in axes){Vec3 n=Vec3.Cross(edge,axis);Add(n);Add(-n);}
+            }
+            return result.ToArray();
         }
         private float Expanded(CollisionPlane plane, Hull hull)
         {
@@ -130,6 +163,21 @@ namespace Velocity.Core
         public static ConvexBrush Box(Vec3 center, Vec3 size, int material = 0, float yaw = 0) => Prism(center, size.X, size.Z, size.Y * .5f, size.Y * .5f, 0, material, yaw);
         public static ConvexBrush Ramp(Vec3 center, float width, float length, float angle, int material = 1, float yaw = 0)
             => Prism(center, width, length, width * .5f * (float)Math.Tan(Math.Abs(angle) * MathEx.DegToRad) + 1, 0, (float)Math.Tan(angle * MathEx.DegToRad), material, yaw);
+        public static ConvexBrush TrianglePrism(Vec3 a,Vec3 b,Vec3 c,float thickness=1,int material=1)
+        {
+            Vec3[] v={a,b,c,a-Vec3.Up*thickness,b-Vec3.Up*thickness,c-Vec3.Up*thickness};
+            Vec3 center=(a+b+c)/3-Vec3.Up*thickness*.5f;
+            var faces=new List<int>();var planes=new List<CollisionPlane>();
+            void Face(int x,int y,int z,bool plane=true)
+            {
+                Vec3 n=Vec3.Cross(v[y]-v[x],v[z]-v[x]).Normalized;
+                if(Vec3.Dot(n,center-v[x])>0){int swap=y;y=z;z=swap;n=-n;}
+                faces.Add(x);faces.Add(y);faces.Add(z);if(plane)planes.Add(new CollisionPlane(n,v[x]));
+            }
+            Face(3,4,5);Face(0,1,2);
+            for(int i=0;i<3;i++){int j=(i+1)%3;Face(i,j,j+3);Face(i,j+3,i+3,false);}
+            return new ConvexBrush(planes.ToArray(),v,faces.ToArray(),material);
+        }
         private static ConvexBrush Prism(Vec3 center, float width, float length, float bottom, float top, float slope, int material, float yaw)
         {
             float x = width * .5f, z = length * .5f;

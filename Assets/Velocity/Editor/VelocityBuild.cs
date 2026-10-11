@@ -23,7 +23,7 @@ namespace Velocity.Editor
             UniversalRenderPipelineAsset pipeline=AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(pipelinePath);
             if(pipeline==null)
             {
-                pipeline=ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+                pipeline=UniversalRenderPipelineAsset.Create(renderer);
                 var serialized=new SerializedObject(pipeline);
                 SerializedProperty list=serialized.FindProperty("m_RendererDataList");
                 list.arraySize=1; list.GetArrayElementAtIndex(0).objectReferenceValue=renderer;
@@ -35,6 +35,17 @@ namespace Velocity.Editor
             }
             GraphicsSettings.defaultRenderPipeline=pipeline;
             QualitySettings.renderPipeline=pipeline;
+            // Populate URP's shader/resource settings using the pinned package's editor hook.
+            typeof(UniversalRenderPipelineGlobalSettings).GetMethod("Ensure",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)?.Invoke(null,new object[]{true});
+            var graphics=new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset")[0]);
+            SerializedProperty included=graphics.FindProperty("m_AlwaysIncludedShaders");
+            foreach(string shaderName in new[]{"Universal Render Pipeline/Lit","Universal Render Pipeline/Unlit","Velocity/VertexUnlit","UI/Default","GUI/Text Shader"})
+            {
+                Shader shader=Shader.Find(shaderName); if(shader==null) continue; bool exists=false;
+                for(int i=0;i<included.arraySize;i++) if(included.GetArrayElementAtIndex(i).objectReferenceValue==shader) exists=true;
+                if(!exists) { int index=included.arraySize++; included.GetArrayElementAtIndex(index).objectReferenceValue=shader; }
+            }
+            graphics.ApplyModifiedPropertiesWithoutUndo();
             QualitySettings.vSyncCount=0;
             QualitySettings.shadows=ShadowQuality.Disable;
             PlayerSettings.companyName="atlasru"; PlayerSettings.productName="Velocity";
@@ -50,6 +61,7 @@ namespace Velocity.Editor
             PlayerSettings.Android.targetSdkVersion=(AndroidSdkVersions)36;
             PlayerSettings.Android.targetArchitectures=AndroidArchitecture.ARM64;
             PlayerSettings.Android.bundleVersionCode=100;
+            PlayerSettings.Android.forceInternetPermission=true;
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android,ScriptingImplementation.IL2CPP);
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Standalone,ScriptingImplementation.Mono2x);
             PlayerSettings.SetApiCompatibilityLevel(UnityEditor.Build.NamedBuildTarget.Android,ApiCompatibilityLevel.NET_Standard);
@@ -96,7 +108,7 @@ namespace Velocity.Editor
     {
         static ConfigureOnFirstImport()
         {
-            if(!File.Exists(VelocityBuild.ScenePath)) EditorApplication.delayCall+=VelocityBuild.Configure;
+            if(!File.Exists("Assets/Velocity/Settings/VelocityURP.asset")) EditorApplication.delayCall+=VelocityBuild.Configure;
         }
     }
 }

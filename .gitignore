@@ -15,3 +15,5 @@
 Tests/**/bin/
 Tests/**/obj/
 artifacts/
+Tools/**/bin/
+Tools/**/obj/
