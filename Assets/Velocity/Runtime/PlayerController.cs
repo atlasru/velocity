@@ -19,8 +19,8 @@ namespace Velocity.Runtime
             Session=session; Camera=gameObject.AddComponent<Camera>(); Camera.nearClipPlane=.04f; Camera.farClipPlane=650;
             Camera.clearFlags=CameraClearFlags.SolidColor; Camera.backgroundColor=new Color(.045f,.06f,.075f);
             gameObject.AddComponent<AudioListener>();
-            red=new Material(Shader.Find("Universal Render Pipeline/Lit")){color=new Color(.8f,.32f,.24f)};
-            blue=new Material(Shader.Find("Universal Render Pipeline/Lit")){color=new Color(.3f,.6f,.8f)};
+            red=new Material(Shader.Find("Velocity/Surface")){color=new Color(.8f,.32f,.24f)};
+            blue=new Material(Shader.Find("Velocity/Surface")){color=new Color(.3f,.6f,.8f)};
         }
         public void BeforeTick() { if(Session.Local!=null) { previousPosition=Session.Local.Movement.Position; hadState=true; } }
         public void ResetView() { hadState=false; smoothCorrection=Vector3.zero; }

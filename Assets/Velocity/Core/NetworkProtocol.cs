@@ -76,7 +76,12 @@ namespace Velocity.Core
                         case PacketType.Snapshot:
                             p.Tick=r.ReadInt32(); if(p.Tick<0) return false;
                             int events=r.ReadByte(); if(events>4) return false;
-                            for(int n=0;n<events;n++) p.Events.Add(new GameEvent{Id=r.ReadInt32(),Tick=r.ReadInt32(),Killer=r.ReadByte(),Victim=r.ReadByte(),Weapon=r.ReadByte()});
+                            for(int n=0;n<events;n++)
+                            {
+                                var e=new GameEvent{Id=r.ReadInt32(),Tick=r.ReadInt32(),Killer=r.ReadByte(),Victim=r.ReadByte(),Weapon=r.ReadByte()};
+                                if(e.Id<0||e.Tick<0||e.Killer<1||e.Killer>8||e.Victim<1||e.Victim>8||e.Weapon>3)return false;
+                                p.Events.Add(e);
+                            }
                             int players=r.ReadByte(); if(players<1||players>8) return false;
                             var ids=new HashSet<byte>();
                             for(int n=0;n<players;n++) { PlayerState player=ReadPlayer(r); if(!ids.Add(player.Id)) return false; p.Players.Add(player); }

@@ -39,7 +39,14 @@ namespace Velocity.Editor
             typeof(UniversalRenderPipelineGlobalSettings).GetMethod("Ensure",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)?.Invoke(null,new object[]{true});
             var graphics=new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset")[0]);
             SerializedProperty included=graphics.FindProperty("m_AlwaysIncludedShaders");
-            foreach(string shaderName in new[]{"Universal Render Pipeline/Lit","Universal Render Pipeline/Unlit","Velocity/VertexUnlit","UI/Default","GUI/Text Shader"})
+            // Retain only the small project shaders, not URP/Lit's huge variant set.
+            for(int i=included.arraySize-1;i>=0;i--)
+            {
+                Shader old=included.GetArrayElementAtIndex(i).objectReferenceValue as Shader;
+                if(old!=null&&(old.name=="Universal Render Pipeline/Lit"||old.name=="Universal Render Pipeline/Unlit"))
+                {included.GetArrayElementAtIndex(i).objectReferenceValue=null;included.DeleteArrayElementAtIndex(i);}
+            }
+            foreach(string shaderName in new[]{"Velocity/Surface","Velocity/Unlit","Velocity/VertexUnlit","UI/Default","GUI/Text Shader"})
             {
                 Shader shader=Shader.Find(shaderName); if(shader==null) continue; bool exists=false;
                 for(int i=0;i<included.arraySize;i++) if(included.GetArrayElementAtIndex(i).objectReferenceValue==shader) exists=true;
@@ -87,12 +94,29 @@ namespace Velocity.Editor
             Configure();
             string targetName=Argument("-buildTarget","StandaloneWindows64");
             BuildTarget target=(BuildTarget)Enum.Parse(typeof(BuildTarget),targetName,true);
-            string output=Argument("-buildPath",$"build/{targetName}/"+(target==BuildTarget.Android?"Velocity.apk":"Velocity.exe"));
+            string output=Argument("-customBuildPath",Argument("-buildPath",$"build/{targetName}/"+(target==BuildTarget.Android?"Velocity.apk":"Velocity.exe")));
             if(target==BuildTarget.Android&&!output.EndsWith(".apk",StringComparison.OrdinalIgnoreCase)) output=Path.Combine(output,"Velocity.apk");
             if(target==BuildTarget.StandaloneWindows64&&!output.EndsWith(".exe",StringComparison.OrdinalIgnoreCase)) output=Path.Combine(output,"Velocity.exe");
             Directory.CreateDirectory(Path.GetDirectoryName(output));
             EditorUserBuildSettings.buildAppBundle=false;
-            BuildReport report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{ScenePath},locationPathName=output,target=target,options=BuildOptions.None});
+            EditorUserBuildSettings.exportAsGoogleAndroidProject=false;
+            PlayerSettings.bundleVersion=Argument("-velocityVersion","0.1.0");
+            if(target==BuildTarget.Android)
+            {
+                if(int.TryParse(Argument("-androidVersionCode","100"),out int code)&&code>0)PlayerSettings.Android.bundleVersionCode=code;
+                string key=Argument("-androidKeystoreName","");
+                if(!string.IsNullOrEmpty(key))
+                {
+                    PlayerSettings.Android.useCustomKeystore=true;PlayerSettings.Android.keystoreName=key;
+                    PlayerSettings.Android.keystorePass=Argument("-androidKeystorePass","");
+                    PlayerSettings.Android.keyaliasName=Argument("-androidKeyaliasName","");
+                    PlayerSettings.Android.keyaliasPass=Argument("-androidKeyaliasPass","");
+                }
+                else PlayerSettings.Android.useCustomKeystore=false;
+            }
+            BuildReport report;
+            try {report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{ScenePath},locationPathName=output,target=target,options=BuildOptions.None});}
+            finally {PlayerSettings.Android.keystorePass="";PlayerSettings.Android.keyaliasPass="";}
             if(report.summary.result!=BuildResult.Succeeded) throw new Exception("Velocity build failed: "+report.summary.result+", "+report.summary.totalErrors+" errors");
             Debug.Log("Velocity build verified: "+output);
         }

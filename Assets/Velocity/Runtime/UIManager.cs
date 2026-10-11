@@ -16,6 +16,7 @@ namespace Velocity.Runtime
         private Text speed,timer,details,health,ammo,status,score,feed,hint;
         private Text scoreStats,scoreSpeed;
         private RectTransform joystick,stick;
+        private Button restartCourse,checkpointCourse;
         private Font font;
         private CanvasScaler scaler;
         private bool showScore,editing;
@@ -55,8 +56,8 @@ namespace Velocity.Runtime
             if(session.Mobile)
             {
                 ButtonAt(hud,"SCORE",new Vector2(.055f,.88f),new Vector2(95,40),()=>showScore=!showScore);
-                ButtonAt(hud,"↻",new Vector2(.055f,.79f),new Vector2(55,45),()=>session.Input.Command(InputButtons.Restart));
-                ButtonAt(hud,"CP",new Vector2(.055f,.7f),new Vector2(55,45),()=>session.Input.Command(InputButtons.Checkpoint));
+                restartCourse=ButtonAt(hud,"↻",new Vector2(.055f,.79f),new Vector2(55,45),()=>{if(session.Mode!=MapMode.Combat)session.Input.Command(InputButtons.Restart);});
+                checkpointCourse=ButtonAt(hud,"CP",new Vector2(.055f,.7f),new Vector2(55,45),()=>{if(session.Mode!=MapMode.Combat)session.Input.Command(InputButtons.Checkpoint);});
             }
             for(int i=0;i<5;i++) { var o=Rect("Crosshair",hud); o.anchorMin=o.anchorMax=new Vector2(.5f,.5f); var image=o.gameObject.AddComponent<Image>(); image.color=Ink; image.raycastTarget=false; crosshair.Add(image); }
             touchRoot=Rect("Touch controls",hud); Stretch(touchRoot); MakeTouch(); MainMenu();
@@ -92,10 +93,11 @@ namespace Velocity.Runtime
             Text text=Text(value,r,22); text.text=value; Stretch(text.rectTransform); text.rectTransform.offsetMin=new Vector2(20,0); text.rectTransform.offsetMax=new Vector2(-20,0);
             Height(button,height); return button;
         }
-        private void ButtonAt(Transform parent,string text,Vector2 anchor,Vector2 size,Action action)
+        private Button ButtonAt(Transform parent,string text,Vector2 anchor,Vector2 size,Action action)
         {
             Button b=Button(parent,text,action,size.y); RectTransform r=(RectTransform)b.transform; r.anchorMin=r.anchorMax=anchor; r.sizeDelta=size; r.pivot=new Vector2(.5f,.5f);
             Text label=b.GetComponentInChildren<Text>(); label.alignment=TextAnchor.MiddleCenter; label.rectTransform.offsetMin=label.rectTransform.offsetMax=Vector2.zero; label.fontSize=18;
+            return b;
         }
         private InputField Field(Transform parent,string label,string value,Action<string> changed)
         {
@@ -179,7 +181,7 @@ namespace Velocity.Runtime
         public void PauseMenu()
         {
             page="pause"; Transform p=Page("PAUSED"); Button(p,"Resume",()=>session.Pause(false));
-            Button(p,"Restart run",()=>{session.Input.Command(InputButtons.Restart);session.Pause(false);});
+            if(session.Mode!=MapMode.Combat)Button(p,"Restart run",()=>{session.Input.Command(InputButtons.Restart);session.Pause(false);});
             if(session.Mode!=MapMode.Combat) Button(p,"Checkpoint · practice",()=>{session.Input.Command(InputButtons.Checkpoint);session.Pause(false);});
             Button(p,"Settings",()=>SettingsMenu(true)); Button(p,"Main menu",()=>session.ReturnToMenu());
             if(session.Server!=null)
@@ -278,6 +280,7 @@ namespace Velocity.Runtime
             if(editing) session.Input.Mobile.Poll(session.Settings.Value,session.Mode==MapMode.Combat);
             if(hudTime<.05f&&!editing) return; hudTime=0;
             PlayerState p=session.Local; MovementState m=p.Movement; bool combat=session.Mode==MapMode.Combat;
+            if(restartCourse!=null){restartCourse.gameObject.SetActive(!combat);checkpointCourse.gameObject.SetActive(!combat);}
             speed.text=Mathf.RoundToInt(m.Velocity.HorizontalSpeed/.0254f)+" u/s";
             timer.text=combat?"":Format(p.Timer.Seconds)+(p.Timer.Finished?"  FINISHED":"");
             int best=session.Settings.Records.BestTicks[session.Simulation.Map.Id];

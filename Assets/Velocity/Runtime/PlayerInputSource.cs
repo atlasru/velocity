@@ -44,9 +44,10 @@ namespace Velocity.Runtime
         public bool Enabled=true;
         private PlayerInput latest;
         private InputButtons queued;
+        private InputButtons previousFrame;
         public void Update(GameSettings settings,bool combat,bool isMobile)
         {
-            if(!Enabled) { latest=new PlayerInput{Yaw=Yaw,Pitch=Pitch,Weapon=Weapon}; return; }
+            if(!Enabled) { latest=new PlayerInput{Yaw=Yaw,Pitch=Pitch,Weapon=Weapon}; previousFrame=InputButtons.None; return; }
             if(isMobile)
             {
                 Mobile.Poll(settings,combat);
@@ -64,6 +65,9 @@ namespace Velocity.Runtime
                 if(Input.GetKeyDown(KeyCode.F5)||(!combat&&Input.GetKeyDown(KeyCode.R))) queued|=InputButtons.Restart;
                 if(Input.GetKeyDown(KeyCode.T)) queued|=InputButtons.Checkpoint;
             }
+            // Preserve short taps between 120 Hz simulation ticks at high render frame rates.
+            queued|=(latest.Buttons&~previousFrame)&(InputButtons.Jump|InputButtons.Fire|InputButtons.Reload);
+            previousFrame=latest.Buttons;
             if(settings.AutoBhop) latest.Buttons|=InputButtons.AutoBhop;
         }
         public void Command(InputButtons command) => queued|=command;
@@ -71,6 +75,10 @@ namespace Velocity.Runtime
         {
             PlayerInput input=latest; input.Sequence=sequence; input.ServerTick=tick; input.Buttons|=queued; queued=InputButtons.None; return input;
         }
-        public void ResetLook(MovementState state) { Yaw=state.Yaw; Pitch=state.Pitch; Mobile.Controls.Clear(); }
+        public void ResetLook(MovementState state)
+        {
+            Yaw=state.Yaw; Pitch=state.Pitch; queued=previousFrame=InputButtons.None;
+            latest=new PlayerInput{Yaw=Yaw,Pitch=Pitch,Weapon=Weapon}; Mobile.Controls.Clear();
+        }
     }
 }

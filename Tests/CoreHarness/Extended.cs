@@ -117,8 +117,9 @@ internal static partial class Program
             var remote=new RemoteInterpolation(); remote.Add(0,new MovementState{Position=Vec3.Zero,Yaw=179,Velocity=new Vec3(12,0,0)}); remote.Add(4,new MovementState{Position=new Vec3(.4f,0,0),Yaw=-179,Velocity=new Vec3(12,0,0)});
             Near(remote.At(2).Position.X,.2f,.00001f,"interpolation"); Near(Math.Abs(remote.At(2).Yaw),180,.001f,"yaw wrap"); Near(remote.At(100).Position.X,.7f,.001f,"extrapolation limit");
         });
-        Test("real UDP manual join, loss recovery, movement and reconnect",()=>NetworkTest(false));
-        Test("real UDP hosting roles reversed",()=>NetworkTest(true));
+        Test("real UDP manual join, loss recovery, movement and reconnect",NetworkTest);
+        Test("real UDP reconnect resets prediction after host restart",RestartNetworkTest);
+        Conformance();
         Test("real UDP discovery answers a manual directed query",()=>{
             using(var server=new LanServer(1,"Discovery",false,0))
             using(var host=new LanDiscovery(server))
@@ -130,11 +131,11 @@ internal static partial class Program
             }
         });
     }
-    private static void NetworkTest(bool reverse)
+    private static void NetworkTest()
     {
-        using(var server=new LanServer(1,reverse?"PhoneRole":"WindowsRole",false,0))
+        using(var server=new LanServer(1,"Loopback host",false,0))
         {
-            using(var client=new LanClient("127.0.0.1",reverse?"WindowsRole":"PhoneRole",server.Transport.Port))
+            using(var client=new LanClient("127.0.0.1","Loopback client",server.Transport.Port))
             {
                 int counter=0;
                 client.Transport.DropForTesting=(data,endpoint)=>++counter%7==0;

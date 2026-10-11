@@ -1,0 +1,14 @@
+# Known limitations and incomplete delivery
+
+- **Unity activation blocks release delivery.** Real GameCI Windows/Android jobs failed because UNITY_LICENSE/UNITY_SERIAL were absent. No EXE/APK or verified playable release is currently supplied. Exact secrets and retry instructions are in BUILD.md.
+- **Unity execution is unverified.** The environment has no installed Editor. Core C# compiles and tests independently; syntax checking does not prove Unity API/shader compilation, successful package import, URP rendering or runtime menu behavior. Editor tests are committed and configured in CI but activation blocks running them.
+- **Devices are unverified.** No Windows executable was launched, APK installed, Windows↔Android LAN session exercised, physical multitouch tested or hardware frame rate measured. Automated 30/60/120/240 schedules test the fixed-step simulation, not a GPU.
+- **LAN only.** Gameplay uses a bounded custom UDP protocol shared by both targets. It has input redundancy, sequenced snapshots, token/endpoint binding, validation and timeouts; no internet matchmaking, NAT traversal or encrypted transport. Automatic broadcast discovery depends on the OS/network; manual IP remains available.
+- **Cross-platform numerical behavior still needs device testing.** Fixed timestep and the same simulation reduce drift, but identical floating-point bits across Mono/IL2CPP/x64/ARM64 are not claimed. Reconciliation handles differing predicted state.
+- **Static brush maps.** Three original maps are implemented. The core supports static convex brush collision with edge bevels, not arbitrary moving/concave imported geometry, water or ladders.
+- **Combat scope.** Four weapons, FFA/teams, ammunition pickups, authoritative damage, bounded lag compensation, deaths/respawns, kill feed and scoreboard are implemented. Solo targets stand still; there are no navigating combat bots. All weapons are available from spawn; arena pickups replenish reserve ammo.
+- **Controls/presentation need playtesting.** Mobile Surf Assist changes input ergonomics only. Physics presets, touch layout and course difficulty require human testing before a polished release can be asserted. No ghost recording is implemented.
+- **Signing and persistence require target validation.** Development APKs can use changing debug certificates. Stable tagged updates require the private signing secrets in BUILD.md. File replacement/backups are tested on Linux; Android IL2CPP storage behavior awaits a device.
+- **Reproducibility needs the first licensed import.** Editor and direct packages/actions are pinned. The generated Unity package lock and render assets must be verified after import. Missing activation can conceal further compile/import/build failures.
+
+The full definition of done is not met until both exports exist, launch/install successfully and Windows↔Android gameplay passes the acceptance steps in Docs/QA.md.

@@ -17,3 +17,11 @@ Tests/**/obj/
 artifacts/
 Tools/**/bin/
 Tools/**/obj/
+
+Tools/**/bin/
+Tools/**/obj/
+dist/
+release/
+source-artifact/
+__pycache__/
+*.pyc

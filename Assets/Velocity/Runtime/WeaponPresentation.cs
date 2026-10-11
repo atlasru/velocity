@@ -16,8 +16,8 @@ namespace Velocity.Runtime
         public void Initialize(GameSession game)
         {
             session=game; audioSource=gameObject.AddComponent<AudioSource>(); audioSource.playOnAwake=false;
-            gun=new Material(Shader.Find("Universal Render Pipeline/Unlit")){color=new Color(.15f,.18f,.2f)};
-            metal=new Material(Shader.Find("Universal Render Pipeline/Unlit")){color=new Color(.48f,.5f,.52f)};
+            gun=new Material(Shader.Find("Velocity/Unlit")){color=new Color(.15f,.18f,.2f)};
+            metal=new Material(Shader.Find("Velocity/Unlit")){color=new Color(.48f,.5f,.52f)};
             sounds=new AudioClip[4];
             for(int w=0;w<4;w++)
             {

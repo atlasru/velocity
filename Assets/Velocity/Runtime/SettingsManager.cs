@@ -61,10 +61,7 @@ namespace Velocity.Runtime
         }
         private void Write(string file,object value)
         {
-            string path=Path.Combine(root,file),temp=path+".tmp";
-            using(var stream=new FileStream(temp,FileMode.Create,FileAccess.Write,FileShare.None))
-            using(var writer=new StreamWriter(stream)) { writer.Write(JsonUtility.ToJson(value,true)); writer.Flush(); stream.Flush(true); }
-            if(File.Exists(path)) File.Replace(temp,path,path+".bak"); else File.Move(temp,path);
+            AtomicFile.Write(Path.Combine(root,file),JsonUtility.ToJson(value,true));
         }
         public void Save() { Value.Validate(); Write("settings.json",Value); }
         public void Record(byte map,PlayerState p)

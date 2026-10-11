@@ -23,8 +23,8 @@ namespace Velocity.Runtime
             materials=new Material[colors.Length];
             for(int i=0;i<colors.Length;i++)
             {
-                materials[i]=new Material(Shader.Find("Universal Render Pipeline/Lit")); materials[i].color=colors[i];
-                materials[i].SetFloat("_Smoothness",.08f); resources.Add(materials[i]);
+                materials[i]=new Material(Shader.Find("Velocity/Surface")); materials[i].color=colors[i];
+                resources.Add(materials[i]);
                 var vertices=new List<Vector3>(); var indices=new List<int>();
                 foreach(ConvexBrush brush in map.World.Brushes)
                 {

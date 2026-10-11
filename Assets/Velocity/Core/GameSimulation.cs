@@ -70,7 +70,8 @@ namespace Velocity.Core
             }
             InputButtons pressed=input.Buttons&~p.PreviousButtons;
             p.PreviousButtons=input.Buttons;
-            if((pressed&InputButtons.Restart)!=0) Restart(p,false);
+            // Course commands must never refill health/ammo or renew spawn protection in combat.
+            if((pressed&InputButtons.Restart)!=0&&Map.Mode!=MapMode.Combat) Restart(p,false);
             if((pressed&InputButtons.Checkpoint)!=0&&Map.Mode!=MapMode.Combat) Restart(p,true);
             Movement.Step(ref p.Movement,input,Map.World);
             if(p.Movement.Position.Y<Map.KillHeight)
@@ -78,7 +79,11 @@ namespace Velocity.Core
                 if(Map.Mode==MapMode.Combat) { p.Health=0; p.Deaths++; p.RespawnTick=Tick+240; }
                 else Restart(p,true);
             }
-            if(Map.Mode!=MapMode.Combat) TimerSystem.Update(p,Map,Tick);
+            if(Map.Mode!=MapMode.Combat)
+            {
+                TimerSystem.Update(p,Map,Tick);
+                if(CustomRules) p.Timer.Practice=true;
+            }
             else
             {
                 foreach(MapZone zone in Map.Zones)
